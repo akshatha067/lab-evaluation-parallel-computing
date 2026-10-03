@@ -1,7 +1,9 @@
 # Parallel Sum and Average of a Dataset using OpenMP
 
 **Team 3, Parallel Computing Mini-Project**
-**Team members:** <Akshatha M (01fe24bci080)>, <Kavya M (01fe24bci056)>
+**Team Members:**
+1. Akshatha M (01FE24BCI080)
+2. Kavya M (01FE24BCI056)
 
 ## Objective
 Compute the sum and average of a large array using multiple OpenMP threads and analyse execution time, speedup and efficiency against a sequential version.
@@ -23,13 +25,13 @@ Compute the sum and average of a large array using multiple OpenMP threads and a
 ## How to build and run
 ```bash
 gcc -O2 -fopenmp src/sum_avg.c -o sum_avg -lm
-./sum_avg 10000000 4 3        # N, threads, repeats
-./run_experiments.sh          # full experiment -> results/results.csv
-python3 plot.py               # graphs -> graphs/
+./sum_avg 10000000 4 3        : N, threads, repeats
+./run_experiments.sh         
+python3 plot.py               
 ```
 
 ## Experimental setup
-WSL Ubuntu on Windows, GCC with `-O2 -fopenmp`, 18 logical cores (`nproc`). CPU: <your CPU>.
+WSL Ubuntu on Windows, GCC with `-O2 -fopenmp`, 18 logical cores (`nproc`). CPU: Intel Core Ultra 5 125H.
 Each point is the average of 5 runs after one warm-up run.
 
 ## Results
