@@ -1,7 +1,7 @@
 # Parallel Sum and Average of a Dataset using OpenMP
 
 **Team 3, Parallel Computing Mini-Project**
-**Team members:** <Name 1 (Roll No)>, <Name 2 (Roll No)>, <Name 3 (Roll No)>
+**Team members:** <Akshatha M (01fe24bci080)>, <Kavya M (01fe24bci056)>
 
 ## Objective
 Compute the sum and average of a large array using multiple OpenMP threads and analyse execution time, speedup and efficiency against a sequential version.
