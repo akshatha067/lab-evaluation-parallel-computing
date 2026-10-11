@@ -1,12 +1,17 @@
 #!/bin/bash
+# Usage: ./run_experiments.sh 10 15      (sizes in GB)
 set -e
+[ $# -lt 1 ] && { echo "Usage: $0 <size_GB> [<size_GB> ...]"; exit 1; }
+WORKERS=${WORKERS:-"1 2 4 8 16"}
 mkdir -p results
-gcc -O2 -fopenmp src/sum_avg.c -o sum_avg -lm
 OUT=results/results.csv
-echo "n,threads,seq_time,par_time,speedup,efficiency,seq_avg,par_avg,rel_error" > $OUT
-for N in 1000000 10000000 50000000 100000000; do
-  for T in 1 2 4 8; do
-    ./sum_avg $N $T 5 | tee -a $OUT
+[ -f $OUT ] || echo "method,gb,workers,time,checksum" > $OUT
+for GB in "$@"; do
+  echo "===== $GB GB ====="
+  ./seq $GB | tee -a $OUT
+  for P in $WORKERS; do
+    ./pthreads $GB $P | tee -a $OUT
+    mpirun --oversubscribe -np $P ./mpi $GB | tee -a $OUT
   done
 done
 echo "Done. Results in $OUT"

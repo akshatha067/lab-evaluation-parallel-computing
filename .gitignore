@@ -1,2 +1,5 @@
 sum_avg
 __pycache__/
+seq
+pthreads
+mpi

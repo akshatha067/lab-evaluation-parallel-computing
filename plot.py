@@ -4,19 +4,35 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 df = pd.read_csv("results/results.csv")
+seq = df[df.method == "seq"].set_index("gb")["time"]
+par = df[df.method != "seq"].copy()
+par["speedup"] = par.apply(lambda r: seq[r.gb] / r.time, axis=1)
+par["efficiency"] = par.speedup / par.workers
+par.to_csv("results/summary.csv", index=False)
+print(par[["method", "gb", "workers", "time", "speedup", "efficiency"]].round(3).to_string(index=False))
 
-def plot(ycol, ylabel, title, fname, ideal=False):
+colors = {"pthreads": "tab:blue", "mpi": "tab:red"}
+for gb, g in par.groupby("gb"):
     plt.figure(figsize=(7, 4.5))
-    for n, g in df.groupby("n"):
-        plt.plot(g["threads"], g[ycol], marker="o", label=f"N = {n:,}")
-    if ideal:
-        ts = sorted(df["threads"].unique())
-        plt.plot(ts, ts, "k--", label="Ideal")
-    plt.xlabel("Number of threads"); plt.ylabel(ylabel); plt.title(title)
-    plt.xticks(sorted(df["threads"].unique())); plt.grid(True); plt.legend()
-    plt.tight_layout(); plt.savefig(f"graphs/{fname}", dpi=150); plt.close()
+    plt.axhline(seq[gb], color="k", linestyle="--", label=f"Sequential ({seq[gb]:.1f} s)")
+    for m, d in g.groupby("method"):
+        plt.plot(d.workers, d.time, marker="o", color=colors[m], label=m)
+    plt.xlabel("Threads / MPI processes"); plt.ylabel("Execution time (s)")
+    plt.title(f"Execution time, {gb:g} GB dataset"); plt.xscale("log", base=2)
+    plt.xticks(sorted(g.workers.unique()), sorted(g.workers.unique()))
+    plt.grid(True); plt.legend(); plt.tight_layout()
+    plt.savefig(f"graphs/time_{gb:g}GB.png", dpi=150); plt.close()
 
-plot("par_time", "Execution time (s)", "Execution Time vs Threads", "execution_time.png")
-plot("speedup", "Speedup (Ts / Tp)", "Speedup vs Threads", "speedup.png", ideal=True)
-plot("efficiency", "Efficiency (Speedup / p)", "Efficiency vs Threads", "efficiency.png")
+for col, ylabel, fname, ideal in [("speedup", "Speedup (Tseq / Tpar)", "speedup.png", True),
+                                  ("efficiency", "Efficiency (speedup / workers)", "efficiency.png", False)]:
+    plt.figure(figsize=(7, 4.5))
+    for (m, gb), d in par.groupby(["method", "gb"]):
+        plt.plot(d.workers, d[col], marker="o", linestyle="-" if m == "pthreads" else "--",
+                 label=f"{m} {gb:g} GB")
+    if ideal:
+        ws = sorted(par.workers.unique()); plt.plot(ws, ws, "k:", label="Ideal")
+    plt.xlabel("Threads / MPI processes"); plt.ylabel(ylabel); plt.xscale("log", base=2)
+    plt.xticks(sorted(par.workers.unique()), sorted(par.workers.unique()))
+    plt.grid(True); plt.legend(fontsize=8); plt.tight_layout()
+    plt.savefig(f"graphs/{fname}", dpi=150); plt.close()
 print("Graphs saved in graphs/")
